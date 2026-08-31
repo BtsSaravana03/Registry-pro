@@ -1,0 +1,14 @@
+- [x] Setup Design System and League Config
+- [x] Implement Auth and League Context
+- [x] Create Login Page (Glassmorphism UI)
+- [x] Implement Dashboard Layout & Navbar
+- [x] Build Player Service (Mock API)
+- [x] Implement Players Table View
+    - [x] Global Search
+    - [x] Date Range Filter
+    - [x] Column Sorting & Pagination
+    - [x] Image Preview Thumbnails
+    - [x] Excel Export
+- [x] Implement Players Card View
+- [x] Create Modals (Image View & Player Details)
+- [x] Final UI/UX Polish & Verification

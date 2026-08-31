@@ -1,0 +1,6 @@
+{
+  "eswarapl_player": "{\"c\":[\"__index__\",\"First_Name\",\"Surname\",\"DOB\",\"Email_Address\",\"Mobile_Number\",\"Gender\",\"Bowling_Style\",\"headshot_url\",\"Pan_Card_Number\",\"Aadhar_Number\",\"pancard_url\"],\"f\":[\"search\",\"DOB\",\"Gender\"]}",
+  "eswarapl_staff": "{\"c\":[\"__index__\",\"First_Name\",\"Surname\",\"DOB\",\"Gender\",\"Bowling_Style\",\"headshot_url\",\"Specialism\",\"Qualification\",\"Staff_Role\",\"aadhar_url\",\"photo_url\"],\"f\":[\"search\",\"Staff_Role\",\"Gender\"]}",
+  "eswarmpl_player": "{\"c\":[\"__index__\",\"date_of_birth\",\"gender\",\"email\",\"created_at\",\"stats_url\",\"pancard_url\",\"photo_url\",\"full_name\",\"batting_style\",\"reference_number\",\"player_role\"],\"f\":[\"search\",\"player_role\",\"bowling_type\",\"bowling_hand\",\"batting_style\",\"date_of_birth\",\"gender\",\"availability_type\",\"created_at\",\"availability_commitment_consent\"]}",
+  "eswarcpl_player": "{\"c\":[\"__index__\",\"full_name\",\"display_name\",\"email\",\"phone\",\"date_of_birth\",\"gender\",\"agreement_date\",\"signature\"],\"f\":[\"search\",\"gender\",\"date_of_birth\"]}"
+}

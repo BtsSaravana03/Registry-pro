@@ -1,0 +1,155 @@
+.card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(var(--primary-rgb), 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(var(--primary-rgb), 0.1);
+}
+
+.imageWrapper {
+  position: relative;
+  padding-top: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.holographicTopLeft {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid var(--primary-color);
+  border-left: 2px solid var(--primary-color);
+  z-index: 10;
+}
+
+.holographicTopRight {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid var(--primary-color);
+  border-right: 2px solid var(--primary-color);
+  z-index: 10;
+}
+
+.playerImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease, filter 0.3s ease;
+  filter: contrast(1.2);
+}
+
+.playerImage:hover {
+  transform: scale(1.1);
+  filter: contrast(1.2) sepia(0.3) hue-rotate(180deg);
+}
+
+.nameOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2.5rem 1rem 1rem;
+  background: linear-gradient(to top, rgba(3,5,10,0.9), transparent);
+  color: white;
+  z-index: 5;
+}
+
+.playerName {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0,240,255,0.4);
+  color: #fff;
+}
+
+.playerRole {
+  font-size: 0.875rem;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+}
+
+.detailsContainer {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(7, 12, 28, 0.9);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.statBoxPrimary {
+  background: rgba(0,240,255,0.05);
+  padding: 0.5rem;
+  border: 1px dashed rgba(0,240,255,0.2);
+}
+
+.statBoxSuccess {
+  background: rgba(0,255,102,0.05);
+  padding: 0.5rem;
+  border: 1px dashed rgba(0,255,102,0.2);
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.statValuePrimary {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  white-space: nowrap;
+}
+
+.statValueSuccess {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--success-color);
+}
+
+.extractButton {
+  width: 100%;
+  margin-top: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}

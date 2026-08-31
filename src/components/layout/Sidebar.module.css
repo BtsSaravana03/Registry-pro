@@ -1,0 +1,181 @@
+.sidebar {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 2rem);
+  margin: 1rem;
+  border-radius: var(--radius);
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+}
+
+.sidebarExpanded {
+  width: var(--sidebar-width);
+}
+
+.sidebarCollapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.header {
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--navbar-height);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.headerExpanded {
+  justify-content: flex-start;
+}
+
+.headerCollapsed {
+  justify-content: center;
+}
+
+.logoImg {
+  height: 50px;
+  width: auto;
+  padding: 4px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: transform 0.3s ease;
+  background-color: var(--glass-border);
+  border-radius: 10px;
+}
+
+.logoImg:hover {
+  transform: scale(1.05);
+}
+
+.brandName {
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 100px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.nav {
+  flex: 1;
+  padding: 1.5rem 0.75rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-bottom: 0.25rem;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.navLinkCollapsed {
+  justify-content: center;
+}
+
+.navLinkExpanded {
+  justify-content: flex-start;
+}
+
+.navLinkIcon {
+  min-width: 20px;
+}
+
+.navLinkLabel {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.navLinkActive {
+  color: white;
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 12px -2px rgba(var(--primary-rgb), 0.4);
+  text-transform: uppercase;
+}
+
+.navLinkInactive {
+  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  box-shadow: none;
+}
+
+.footer {
+  padding: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.userContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: var(--transition);
+}
+
+.userContainerExpanded {
+  justify-content: flex-start;
+}
+
+.userContainerCollapsed {
+  justify-content: center;
+}
+
+.userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.userDetails {
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
