@@ -1,0 +1,305 @@
+.dashboardContainer {
+  max-width: 1200px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header Section */
+.headerSection {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.headerGlow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.25) 0%, rgba(var(--primary-rgb), 0) 70%);
+  pointer-events: none;
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(var(--primary-rgb), 0.15);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
+  color: var(--primary-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.leagueBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.titleHighlight {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 680px;
+  line-height: 1.6;
+}
+
+/* Grid Layout for Cards */
+.cardsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Row 1: 2 Cards */
+.rowOne {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+}
+
+/* Row 2: 2 Cards (EOI Dashboard & EOI Players) */
+.rowTwo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+}
+
+/* Dashboard Action Card */
+.actionCard {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 220px;
+}
+
+.actionCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(var(--primary-rgb), 0.5);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.25), 0 0 24px rgba(var(--primary-rgb), 0.2);
+}
+
+.cardGlowBg {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0) 70%);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.actionCard:hover .cardGlowBg {
+  transform: scale(1.4);
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.25) 0%, rgba(var(--primary-rgb), 0) 70%);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.iconWrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(var(--primary-rgb), 0.15);
+  color: var(--primary-color);
+  border: 1px solid rgba(var(--primary-rgb), 0.25);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.actionCard:hover .iconWrapper {
+  transform: scale(1.08) rotate(3deg);
+  background: var(--primary-gradient);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(var(--primary-rgb), 0.35);
+}
+
+.cardBody {
+  flex: 1;
+}
+
+.cardHeaderTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cardTag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0 0 1.25rem;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  transition: gap 0.2s ease, color 0.2s ease;
+}
+
+.actionCard:hover .actionLink {
+  gap: 0.75rem;
+  color: var(--primary-color);
+}
+
+.arrowIcon {
+  transition: transform 0.2s ease;
+}
+
+.actionCard:hover .arrowIcon {
+  transform: translateX(4px);
+}
+
+/* Feature tags in card footer */
+.featureChips {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.featureChip {
+  font-size: 0.725rem;
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--text-secondary);
+  border: 1px solid rgba(var(--primary-rgb), 0.15);
+}
+
+/* Specific styling for EOI dashboard card */
+.eoiCard {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.08) 0%, var(--glass-bg) 100%);
+  border-color: rgba(var(--primary-rgb), 0.2);
+}
+
+.eoiCard .iconWrapper {
+  background: rgba(243, 6, 167, 0.15);
+  color: #f306a7;
+  border-color: rgba(243, 6, 167, 0.3);
+}
+
+.eoiCard:hover .iconWrapper {
+  background: linear-gradient(135deg, #f306a7 0%, #fbbf24 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(243, 6, 167, 0.4);
+}
+
+@media (max-width: 900px) {
+  .rowOne, .rowTwo {
+    grid-template-columns: 1fr;
+  }
+
+  .headerSection {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}

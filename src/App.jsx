@@ -9,6 +9,10 @@ import { playerService } from './services/playerService';
 import SettingsPage from './pages/Settings';
 import PlayerRegistrationPage from './pages/PlayerRegistration';
 import ExcelUploadPage from './pages/ExcelUpload';
+import ILTDashboardPage from './pages/ILTDashboard';
+import CreateTeamPage from './pages/CreateTeam';
+import ManageTeamsPage from './pages/ManageTeams';
+import EOITeamDashboardPage from './pages/EOITeamDashboard';
 
 // Placeholder Pages
 const ReportsPage = () => <div className="card" style={{ padding: '3rem', textAlign: 'center' }}><h1>Reports</h1><p>Reports and Analytics module is coming soon.</p></div>;
@@ -61,6 +65,10 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<ProtectedRoute><Dashboard viewType="table" /></ProtectedRoute>} />
+      <Route path="/ilt-dashboard" element={<ProtectedRoute><ILTDashboardPage /></ProtectedRoute>} />
+      <Route path="/create-team" element={<ProtectedRoute><CreateTeamPage /></ProtectedRoute>} />
+      <Route path="/manage-teams" element={<ProtectedRoute><ManageTeamsPage /></ProtectedRoute>} />
+      <Route path="/eoi-team-dashboard" element={<ProtectedRoute><EOITeamDashboardPage /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute><PlayerRegistrationPage /></ProtectedRoute>} />
       <Route path="/excel-upload" element={<ProtectedRoute><ExcelUploadPage /></ProtectedRoute>} />

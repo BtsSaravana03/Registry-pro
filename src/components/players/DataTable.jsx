@@ -6,6 +6,7 @@ import {
   Users, ArrowUpDown, ChevronDown, Calendar, FilterX, Edit, Trash2, Upload
 } from 'lucide-react';
 import { playerService } from '../../services/playerService';
+import { teamService } from '../../services/teamService';
 import { useAuth } from '../../context/AuthContext';
 import { FULL_MEMBERS, ASSOCIATE_MEMBERS, OTHER_FULL_MEMBERS, COUNTRY_LIST } from '../../pages/PlayerRegistration';
 import regStyles from '../../pages/PlayerRegistration.module.css';
@@ -13,7 +14,7 @@ import styles from './DataTable.module.css';
 import DatePicker from '../ui/DatePicker';
 import { formatValue } from '../../utils/formatters';
 
-const DataTable = ({ onViewDetails }) => {
+const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = false, externalFilters = {}, dashboardMode = false, onEOIChange = null }) => {
   const extractLink = (val) => {
     if (typeof val !== 'string') return null;
     const match = val.match(/(https?:\/\/[^\s]+)/i);
@@ -94,7 +95,7 @@ const DataTable = ({ onViewDetails }) => {
       setVisibleFilters({ search: true });
 
       try {
-        const checkoutParam = activeTab === 'staff' ? league?.staffParams : league?.params;
+        const checkoutParam = customCheckoutParam || (activeTab === 'staff' ? league?.staffParams : league?.params);
         const keys = await playerService.getKeys(checkoutParam);
         if (keys && keys.length > 0) {
           // Map keys, replacing only 'id' with a virtual index key
@@ -156,12 +157,25 @@ const DataTable = ({ onViewDetails }) => {
                 }
               }
 
+              let optionsList = allUniqueValues;
+              if (k.toLowerCase().includes('team_names') || k.toLowerCase().includes('team_ids') || k.toLowerCase().includes('team_name')) {
+                const individualValues = new Set();
+                allUniqueValues.forEach(valStr => {
+                  valStr.split(',').forEach(s => {
+                    const trimmed = s.trim();
+                    if (trimmed) individualValues.add(trimmed);
+                  });
+                });
+                optionsList = Array.from(individualValues);
+                isCategorical = true;
+              }
+
               if (isCategorical) {
                 filterDefs.push({
                   key: k,
                   label: k,
                   type: 'select',
-                  options: allUniqueValues.sort()
+                  options: optionsList.sort()
                 });
               } else {
                 filterDefs.push({ key: k, label: k, type: 'text' });
@@ -178,24 +192,53 @@ const DataTable = ({ onViewDetails }) => {
           // availableColumns state is sortedCols
           const currentCols = sortedCols;
 
+          const isTeam = isTeamView || user?.isTeam;
+
           currentCols.forEach((col, index) => {
-            const isGender = col.label.toLowerCase().includes('gender');
+            const kLow = col.key.toLowerCase();
+            const labelLow = col.label.toLowerCase();
             const isIndex = col.key === '__index__';
 
-            // Always show Index and Gender columns by default; all others by position
-            if (isIndex || isGender) {
-              initialVisCols[col.key] = true;
+            if (dashboardMode) {
+              const isDashboardCol = (
+                isIndex ||
+                kLow.includes('firstname') || labelLow.includes('firstname') || kLow.includes('first_name') ||
+                kLow.includes('lastname') || labelLow.includes('lastname') || kLow.includes('surname') ||
+                kLow === 'eoi' || labelLow === 'eoi' ||
+                kLow === 'country' || labelLow === 'country' || kLow === 'selectednation' ||
+                kLow === 'member_type' || labelLow === 'member_type' || kLow === 'selectedmember' ||
+                kLow.includes('profile_link') || kLow.includes('profile') || labelLow.includes('profile')
+              );
+              initialVisCols[col.key] = isDashboardCol;
             } else {
-              initialVisCols[col.key] = index < 6;
+              const isGender = labelLow.includes('gender');
+              const isTeamDefaultCol = isTeam && (
+                kLow === 'eoi' || labelLow === 'eoi' ||
+                kLow === 'country' || labelLow === 'country' || kLow === 'selectednation' ||
+                kLow === 'member_type' || labelLow === 'member_type' || kLow === 'selectedmember' ||
+                kLow.includes('profile_link') || kLow.includes('profile') || labelLow.includes('profile')
+              );
+
+              // Always show Index, Gender, or Team Default columns by default; all others by position
+              if (isIndex || isGender || isTeamDefaultCol) {
+                initialVisCols[col.key] = true;
+              } else {
+                initialVisCols[col.key] = index < 6;
+              }
             }
 
-            initialVisFilters[col.key] = false;
+            const isEOIFilter = kLow === 'eoi';
+            if (isEOIFilter && (isTeam || customCheckoutParam === 'getEOIPlayers')) {
+              initialVisFilters[col.key] = true;
+            } else {
+              initialVisFilters[col.key] = false;
+            }
           });
 
           let finalVisCols = initialVisCols;
           let finalVisFilters = initialVisFilters;
 
-          if (user && user.username) {
+          if (user && user.username && !dashboardMode) {
             try {
               // Read from in-memory context — zero latency, no API call needed here
               const prefKey = `${user.username}_${activeTab}`;
@@ -704,12 +747,65 @@ const DataTable = ({ onViewDetails }) => {
     }));
   };
 
+  const handleToggleEOI = async (player, newStatus) => {
+    const savedLogin = localStorage.getItem('player_registry_login_data');
+    const loginData = savedLogin ? JSON.parse(savedLogin) : null;
+    const teamId = user?.teamId || user?.Team_Id || loginData?.teamData?.Team_Id || loginData?.Team_Id || user?.id;
+    const playerId = player.ID || player.Id || player.id;
+
+    if (!playerId) {
+      console.error("Missing Player_Id for EOI action:", player);
+      return;
+    }
+    if (!teamId) {
+      setTableAlertModal({ isOpen: true, message: "Team ID is missing. Please re-login." });
+      return;
+    }
+
+    // Optimistic local state update in memory
+    setPlayers(prev => prev.map(p => {
+      if (String(p.ID || p.Id || p.id) === String(playerId)) {
+        return { ...p, EOI: newStatus };
+      }
+      return p;
+    }));
+
+    // Update in-memory playerService cache so tab switching does not revert to stale cached data
+    playerService.updateCachedPlayer(playerId, { EOI: newStatus });
+
+    if (onEOIChange) {
+      onEOIChange(playerId, newStatus);
+    }
+
+    try {
+      if (newStatus === 1) {
+        await teamService.createPlayerEOI({ playerId, teamId });
+      } else {
+        await teamService.deletePlayerEOI({ playerId, teamId });
+      }
+    } catch (err) {
+      console.error("Failed to update player EOI:", err);
+      // Rollback local state and cache on error
+      setPlayers(prev => prev.map(p => {
+        if (String(p.ID || p.Id || p.id) === String(playerId)) {
+          return { ...p, EOI: newStatus === 1 ? 0 : 1 };
+        }
+        return p;
+      }));
+      playerService.updateCachedPlayer(playerId, { EOI: newStatus === 1 ? 0 : 1 });
+      if (onEOIChange) {
+        onEOIChange(playerId, newStatus === 1 ? 0 : 1);
+      }
+      setTableAlertModal({ isOpen: true, message: err.message || "Failed to update EOI status." });
+    }
+  };
+
   const fetchPlayers = async () => {
     if (availableColumns.length === 0) return;
     setLoading(true);
     try {
-      const payload = { ...filters, __types: availableFilters || [] };
-      const checkoutParam = activeTab === 'staff' ? league?.staffParams : league?.params;
+      const payload = { ...filters, ...(externalFilters || {}), __types: availableFilters || [] };
+      const checkoutParam = customCheckoutParam || (activeTab === 'staff' ? league?.staffParams : league?.params);
       const res = await playerService.getPlayers(payload, checkoutParam);
       setPlayers(res.data || []);
       setTotal(res.total || 0);
@@ -719,6 +815,10 @@ const DataTable = ({ onViewDetails }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPlayers();
+  }, [filters, availableColumns, JSON.stringify(externalFilters)]);
 
   const handleViewFile = async (fileKey) => {
     if (!fileKey) return;
@@ -805,9 +905,6 @@ const DataTable = ({ onViewDetails }) => {
     }
   };
 
-  useEffect(() => {
-    fetchPlayers();
-  }, [filters, availableColumns]);
 
   const handleSort = (field) => {
     setFilters(prev => ({
@@ -911,8 +1008,18 @@ const DataTable = ({ onViewDetails }) => {
                   </div>
                 );
               } else if (filterDef.type === 'select') {
-                const currentValue = filters[filterDef.key] || '';
+                const currentValue = filters[filterDef.key] !== undefined && filters[filterDef.key] !== null ? String(filters[filterDef.key]) : '';
                 const isOpen = activeSelect === filterDef.key;
+                const isEOIKey = filterDef.key.toLowerCase() === 'eoi';
+
+                const formatOptionLabel = (val) => {
+                  if (val === '' || val === null || val === undefined) return 'All';
+                  if (isEOIKey) {
+                    if (String(val) === '0') return 'Mark as Interested';
+                    if (String(val) === '1') return 'Interested';
+                  }
+                  return val;
+                };
 
                 return (
                   <div
@@ -924,7 +1031,7 @@ const DataTable = ({ onViewDetails }) => {
                       onClick={() => setActiveSelect(isOpen ? null : filterDef.key)}
                     >
                       <span className={styles.selectLabel}>
-                        {currentValue || 'All'}
+                        {formatOptionLabel(currentValue)}
                       </span>
                       <div className={styles.triggerActions}>
                         {currentValue && (
@@ -956,13 +1063,13 @@ const DataTable = ({ onViewDetails }) => {
                         {filterDef.options.map(opt => (
                           <div
                             key={opt}
-                            className={`${styles.customOption} ${currentValue === opt ? styles.activeOption : ''}`}
+                            className={`${styles.customOption} ${String(currentValue) === String(opt) ? styles.activeOption : ''}`}
                             onClick={() => {
                               setFilters(p => ({ ...p, [filterDef.key]: opt, page: 1 }));
                               setActiveSelect(null);
                             }}
                           >
-                            {opt}
+                            {formatOptionLabel(opt)}
                           </div>
                         ))}
                       </div>
@@ -1213,9 +1320,11 @@ const DataTable = ({ onViewDetails }) => {
                         </div>
                       </th>
                     ))}
-                    <th className={styles.centeredCell} style={{ width: '120px' }}>
-                      <div className={styles.tableHeaderCellContent}>Actions</div>
-                    </th>
+                    {!isTeamView && !user?.isTeam && (customCheckoutParam !== "getEOIAdminPlayers") && (
+                      <th className={styles.centeredCell} style={{ width: '120px' }}>
+                        <div className={styles.tableHeaderCellContent}>Actions</div>
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -1232,9 +1341,96 @@ const DataTable = ({ onViewDetails }) => {
                             }
 
                             const val = player[col.key];
+
+                            if (col.key.toLowerCase() === 'eoi') {
+                              const isInterested = Number(val) === 1 || val === '1' || val === true;
+                              return (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                  {isInterested ? (
+                                    <>
+                                      <span
+                                        style={{
+                                          padding: '4px 10px',
+                                          borderRadius: '9999px',
+                                          background: 'rgba(34, 197, 94, 0.15)',
+                                          color: '#4ade80',
+                                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                                          fontSize: '0.75rem',
+                                          fontWeight: 700,
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '4px'
+                                        }}
+                                      >
+                                        <Check size={13} /> Interested
+                                      </span>
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', cursor: 'pointer' }}
+                                        onClick={(e) => { e.stopPropagation(); handleToggleEOI(player, 0); }}
+                                        title="Remove from EOI list"
+                                      >
+                                        Remove
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      style={{
+                                        padding: '6px 14px',
+                                        fontSize: '0.78rem',
+                                        fontWeight: 700,
+                                        borderRadius: '8px',
+                                        background: 'linear-gradient(135deg, #f306a7 0%, #fbbf24 100%)',
+                                        border: 'none',
+                                        color: '#fff',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 12px rgba(243, 6, 167, 0.3)',
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                      onClick={(e) => { e.stopPropagation(); handleToggleEOI(player, 1); }}
+                                    >
+                                      Mark as Interested
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            }
+
                             const isPassportCol = col.key.toLowerCase().includes('passport');
-                            const isUrlCol = col.key.toLowerCase().includes('url') || isPassportCol;
+                            const isLogoUrlCol = col.key.toLowerCase().includes('team_logourls') || col.key.toLowerCase().includes('logourl');
+                            const isUrlCol = (col.key.toLowerCase().includes('url') || isPassportCol) && !isLogoUrlCol;
                             const isLinkCol = col.key.toLowerCase().includes('link') && !isPassportCol;
+
+                            if (isLogoUrlCol && val) {
+                              const urls = String(val).split(',').map(s => s.trim()).filter(Boolean);
+                              if (urls.length > 0) {
+                                return (
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {urls.map((url, i) => (
+                                      <img
+                                        key={i}
+                                        src={url}
+                                        alt={`Team ${i + 1}`}
+                                        style={{
+                                          width: '28px',
+                                          height: '28px',
+                                          borderRadius: '50%',
+                                          objectFit: 'contain',
+                                          border: '2px solid rgba(255, 255, 255, 0.2)',
+                                          backgroundColor: 'rgba(0,0,0,0.4)',
+                                          marginLeft: i > 0 ? '-8px' : '0px',
+                                          zIndex: urls.length - i,
+                                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+                                        }}
+                                        title={`Team Logo ${i + 1}`}
+                                      />
+                                    ))}
+                                  </div>
+                                );
+                              }
+                            }
 
                             if (isUrlCol && val) {
                               return (
@@ -1255,7 +1451,7 @@ const DataTable = ({ onViewDetails }) => {
                                 const displayText = val.replace(foundLink, '').trim();
                                 return (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    {displayText && <span>{formatValue(displayText, col.key)}</span>}
+                                    {/* {displayText && <span>{formatValue(displayText, col.key)}</span>} */}
                                     <a
                                       href={foundLink}
                                       target="_blank"
@@ -1276,26 +1472,28 @@ const DataTable = ({ onViewDetails }) => {
                           })()}
                         </td>
                       ))}
-                      <td className={styles.centeredCell} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                          <button
-                            className="btn btn-primary"
-                            style={{ padding: '4px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                            onClick={() => handleEditClick(player)}
-                            title="Edit Player"
-                          >
-                            <Edit size={14} />
-                          </button>
-                          <button
-                            className="btn btn-danger"
-                            style={{ padding: '4px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ef4444', border: 'none', color: 'white' }}
-                            onClick={() => handleDeleteClick(player)}
-                            title="Delete Player"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
+                      {!isTeamView && !user?.isTeam && (customCheckoutParam !== "getEOIAdminPlayers") && (
+                        <td className={styles.centeredCell} onClick={(e) => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                            <button
+                              className="btn btn-primary"
+                              style={{ padding: '4px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                              onClick={() => handleEditClick(player)}
+                              title="Edit Player"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button
+                              className="btn btn-danger"
+                              style={{ padding: '4px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ef4444', border: 'none', color: 'white' }}
+                              onClick={() => handleDeleteClick(player)}
+                              title="Delete Player"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -1320,6 +1518,60 @@ const DataTable = ({ onViewDetails }) => {
                           <div className={styles.mobileCardValue}>
                             {(() => {
                               const val = player[col.key];
+
+                              if (col.key.toLowerCase() === 'eoi') {
+                                const isInterested = Number(val) === 1 || val === '1' || val === true;
+                                return (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    {isInterested ? (
+                                      <>
+                                        <span
+                                          style={{
+                                            padding: '4px 10px',
+                                            borderRadius: '9999px',
+                                            background: 'rgba(34, 197, 94, 0.15)',
+                                            color: '#4ade80',
+                                            border: '1px solid rgba(34, 197, 94, 0.3)',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 700,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                          }}
+                                        >
+                                          <Check size={13} /> Interested
+                                        </span>
+                                        <button
+                                          type="button"
+                                          className="btn btn-secondary"
+                                          style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', cursor: 'pointer' }}
+                                          onClick={(e) => { e.stopPropagation(); handleToggleEOI(player, 0); }}
+                                        >
+                                          Remove
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        style={{
+                                          padding: '6px 14px',
+                                          fontSize: '0.78rem',
+                                          fontWeight: 700,
+                                          borderRadius: '8px',
+                                          background: 'linear-gradient(135deg, #f306a7 0%, #fbbf24 100%)',
+                                          border: 'none',
+                                          color: '#fff',
+                                          cursor: 'pointer'
+                                        }}
+                                        onClick={(e) => { e.stopPropagation(); handleToggleEOI(player, 1); }}
+                                      >
+                                        Mark as Interested
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              }
+
                               const isPassportCol = col.key.toLowerCase().includes('passport');
                               const isUrlCol = col.key.toLowerCase().includes('url') || isPassportCol;
                               const isLinkCol = col.key.toLowerCase().includes('link') && !isPassportCol;
@@ -1364,28 +1616,30 @@ const DataTable = ({ onViewDetails }) => {
                         </div>
                       ))}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.75rem' }}>
-                      <button
-                        className="btn btn-primary"
-                        style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditClick(player);
-                        }}
-                      >
-                        <Edit size={12} /> Edit
-                      </button>
-                      <button
-                        className="btn btn-danger"
-                        style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ef4444', border: 'none', color: 'white' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(player);
-                        }}
-                      >
-                        <Trash2 size={12} /> Delete
-                      </button>
-                    </div>
+                    {!isTeamView && !user?.isTeam && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.75rem' }}>
+                        <button
+                          className="btn btn-primary"
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClick(player);
+                          }}
+                        >
+                          <Edit size={12} /> Edit
+                        </button>
+                        <button
+                          className="btn btn-danger"
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ef4444', border: 'none', color: 'white' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(player);
+                          }}
+                        >
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

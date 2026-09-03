@@ -87,6 +87,7 @@
   background: transparent;
   box-shadow: none;
   transition: var(--transition);
+  position: relative;
 }
 
 .navLinkActive {
@@ -94,6 +95,18 @@
   background: var(--primary-gradient);
   box-shadow: 0 4px 12px -2px rgba(var(--primary-rgb), 0.4);
   text-transform: uppercase;
+}
+
+.navLinkActive::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  /* background: linear-gradient(90deg, #f306a7 0%, #fbbf24 100%); */
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(243, 6, 167, 0.8), 0 0 18px rgba(251, 191, 36, 0.6);
 }
 
 .rightSection {

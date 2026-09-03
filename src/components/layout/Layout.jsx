@@ -47,7 +47,7 @@ const Layout = ({ children }) => {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <img src="https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png" alt="Kadamba Logo" className={styles.footerLogo} />
-          <span>Powered by <strong>KadambaTechnology</strong></span>
+          <span>Powered by <strong>Kadamba Technologies</strong></span>
         </div>
       </footer>
 

@@ -23,8 +23,17 @@ export const playerService = {
           PreferredBattingOrders: ""
         };
 
-        if (league?.id === 'ILT' && agentId !== undefined && agentId !== null) {
+        const savedUser = localStorage.getItem('player_registry_user');
+        const userObj = savedUser ? JSON.parse(savedUser) : null;
+        const teamId = userObj?.teamId || userObj?.Team_Id || loginData?.teamData?.Team_Id || loginData?.Team_Id;
+
+        if (league?.id === 'ILT' && agentId !== undefined && agentId !== null && finalCheckout !== 'getEOIPlayers') {
           payload.AgentId = Number(agentId);
+        }
+
+        if (finalCheckout === 'getEOIPlayers' && teamId !== undefined && teamId !== null) {
+          payload.Team_Id = Number(teamId);
+          payload.teamId = Number(teamId);
         }
 
         const response = await fetch('https://auqvn8x7x4.execute-api.ap-south-1.amazonaws.com/ECLPlayerRegistration/player/', {
@@ -74,10 +83,18 @@ export const playerService = {
         const fType = (filterDefs.find(f => f.key === key) || {}).type || 'text';
 
         filtered = filtered.filter(p => {
-          if (p[key] === undefined || p[key] === null) return false;
-          const itemLower = String(p[key]).toLowerCase();
+          const rawVal = (p[key] !== undefined && p[key] !== null)
+            ? p[key]
+            : (key === 'Member_Type' ? (p['SelectedMember'] || p['Member_Type'] || p['Country']) : null);
+
+          if (rawVal === undefined || rawVal === null) return false;
+          const itemLower = String(rawVal).toLowerCase();
 
           if (fType === 'select') {
+            if (itemLower.includes(',')) {
+              const parts = itemLower.split(',').map(s => s.trim());
+              return parts.includes(lowerVal);
+            }
             return itemLower === lowerVal;
           } else {
             return itemLower.includes(lowerVal);
@@ -326,6 +343,20 @@ export const playerService = {
       console.error("Failed to delete player:", err);
       throw err;
     }
+  },
+
+  updateCachedPlayer: (playerId, updates) => {
+    Object.keys(CACHED_DATA).forEach(key => {
+      if (Array.isArray(CACHED_DATA[key])) {
+        CACHED_DATA[key] = CACHED_DATA[key].map(p => {
+          const id = p.ID || p.Id || p.id;
+          if (String(id) === String(playerId)) {
+            return { ...p, ...updates };
+          }
+          return p;
+        });
+      }
+    });
   },
 
   clearCache: () => {

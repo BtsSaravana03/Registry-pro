@@ -1,0 +1,663 @@
+.container {
+  max-width: 1840px;
+  margin: 1.5rem auto 4rem;
+  padding: 0 1.25rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dashboard Section Layout */
+.dashboardSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  min-height: 78vh;
+}
+
+/* Header Row matching Image 2 */
+.eoiHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.eoiTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.titleAccentBar {
+  width: 4px;
+  height: 38px;
+  background: #f306a7;
+  border-radius: 4px;
+  box-shadow: 0 0 12px #f306a7;
+}
+
+.eoiMainTitle {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.eoiSubtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0.2rem 0 0 0;
+}
+
+.lastUpdatedBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.lastUpdatedIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(243, 6, 167, 0.2);
+  color: #f306a7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lastUpdatedTextGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.lastUpdatedLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+}
+
+.lastUpdatedValue {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+/* 80% Main Card Container Row */
+.bigCardRow {
+  flex: 0 0 76%;
+  min-height: 480px;
+  display: flex;
+  gap: 1.75rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1024px) {
+  .bigCardRow {
+    flex-direction: column;
+    min-height: auto;
+  }
+}
+
+/* 30% Team Summary Card with Ground Background Image matching Image 2 */
+.teamSummaryCard {
+  flex: 0 0 30%;
+  min-width: 320px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(243, 6, 167, 0.45);
+  border-radius: 24px;
+  padding: 2.25rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5);
+}
+
+.teamSummaryCard:hover {
+  transform: translateY(-8px) scale(1.015);
+  border-color: rgba(243, 6, 167, 0.85);
+  box-shadow: 0 24px 55px rgba(243, 6, 167, 0.4);
+}
+
+.cardSelected {
+  border-color: #f306a7 !important;
+  box-shadow: 0 0 32px rgba(243, 6, 167, 0.65), inset 0 0 20px rgba(243, 6, 167, 0.2) !important;
+}
+
+.yourTeamPill {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(243, 6, 167, 0.2);
+  border: 1px solid rgba(243, 6, 167, 0.6);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.3rem 0.8rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.05em;
+}
+
+.teamBadgeWrapper {
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.teamLogoImg {
+  width: 95px;
+  height: 95px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
+}
+
+.teamAvatarFallback {
+  width: 95px;
+  height: 95px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f306a7, #fbbf24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(243, 6, 167, 0.45);
+}
+
+.teamNameTitle {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.totalInterestedBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0;
+}
+
+.totalInterestedLabel {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.12em;
+}
+
+.illuminatedBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.illuminatedCount {
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.95), 0 0 32px rgba(243, 6, 167, 0.95);
+  line-height: 1;
+}
+
+.acrossTeamsBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Carousel Container for Admin View */
+.carouselWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.carouselTrackContainer {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+.carouselNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(14, 12, 35, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(243, 6, 167, 0.4);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.carouselNavBtn:hover {
+  background: rgba(243, 6, 167, 0.3);
+  border-color: #f306a7;
+  transform: translateY(-50%) scale(1.12);
+  box-shadow: 0 10px 30px rgba(243, 6, 167, 0.5);
+}
+
+.carouselNavPrev {
+  left: 10px;
+}
+
+.carouselNavNext {
+  right: 10px;
+}
+
+/* 3D Coverflow Card Positions */
+.coverflowCard {
+  position: absolute;
+  width: 310px;
+  height: 420px;
+  background: linear-gradient(135deg, rgba(16, 12, 40, 0.94) 0%, rgba(26, 18, 54, 0.88) 100%);
+  backdrop-filter: blur(24px);
+  border-radius: 24px;
+  padding: 2.2rem 1.6rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  user-select: none;
+}
+
+.coverflowCardCenter {
+  z-index: 15;
+  transform: translateX(0) scale(1.18);
+  border: 2px solid #f306a7;
+  box-shadow: 0 0 45px rgba(243, 6, 167, 0.75), inset 0 0 25px rgba(243, 6, 167, 0.25);
+  opacity: 1;
+}
+
+.coverflowCardLeft {
+  z-index: 10;
+  transform: translateX(-260px) scale(0.85) rotateY(15deg);
+  opacity: 0.75;
+  filter: brightness(0.65);
+}
+
+.coverflowCardRight {
+  z-index: 10;
+  transform: translateX(260px) scale(0.85) rotateY(-15deg);
+  opacity: 0.75;
+  filter: brightness(0.65);
+}
+
+.coverflowCardHidden {
+  z-index: 1;
+  transform: translateX(0) scale(0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.coverflowCardHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  width: 100%;
+  /* margin-top: 0.5rem; */
+}
+
+.coverflownormalCardHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  width: 100%;
+  /* margin-top: 0.5rem; */
+}
+
+.coverflowLogo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  transition: transform 0.4s ease;
+}
+
+.coverflowCardCenter .coverflowLogo {
+  width: 130px;
+  height: 130px;
+  transform: scale(1.08);
+}
+
+.coverflowTitle {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.carouselDots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  z-index: 20;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dotActive {
+  width: 12px;
+  height: 12px;
+  background: #f306a7;
+  box-shadow: 0 0 10px #f306a7;
+}
+
+/* 70% Member Cards 2x2 Grid matching Image 2 */
+.memberGrid70 {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .memberGrid70 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.memberCard {
+  background: linear-gradient(135deg, rgba(20, 15, 45, 0.85) 0%, rgba(28, 20, 58, 0.7) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  min-height: 90px;
+}
+
+.memberCard:hover {
+  transform: translateY(-8px) scale(1.015);
+  background: linear-gradient(135deg, rgba(26, 20, 55, 0.92) 0%, rgba(38, 28, 72, 0.8) 100%);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+}
+
+.memberCardTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.memberCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.memberCardLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.memberCardLabel {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.cardArrowBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.memberCard:hover .cardArrowBtn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.cardDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  /* margin: 1.25rem 0; */
+}
+
+.memberCardBottomRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.countGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.memberCountSublabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
+}
+
+.memberBigCount {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+}
+
+.playersCountTag {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* Reserved 20% Space for Notifications Section */
+.notificationReservedSection {
+  flex: 0 0 18%;
+  min-height: 110px;
+  background: rgba(14, 14, 37, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px dashed rgba(243, 6, 167, 0.25);
+  border-radius: 24px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.notificationReservedSection:hover {
+  border-color: rgba(243, 6, 167, 0.45);
+  background: rgba(14, 14, 37, 0.7);
+}
+
+.notificationHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f306a7;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.notificationIcon {
+  color: #fbbf24;
+}
+
+.notificationPlaceholderText {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+  font-style: italic;
+}
+
+/* EOI Section */
+.eoiSection {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Member Nav Bar for EOI Tab */
+.memberNavContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.85rem 1.25rem;
+  background: rgb(14 14 37 / 64%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(243, 6, 167, 0.25);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  scrollbar-width: none;
+}
+
+.memberNavContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.memberNavTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.memberNavItem {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.memberNavItem:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.memberNavItemActive {
+  background: linear-gradient(135deg, rgba(243, 6, 167, 0.35) 0%, rgba(251, 191, 36, 0.25) 100%) !important;
+  color: #ffffff !important;
+  border-color: #f306a7 !important;
+  box-shadow: 0 6px 20px rgba(243, 6, 167, 0.4);
+}
+
+.memberLogo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+}

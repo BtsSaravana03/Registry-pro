@@ -1,0 +1,537 @@
+.pageContainer {
+  max-width: 1280px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header & Breadcrumb */
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.backBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+  background: var(--accent-color);
+  transform: translateX(-2px);
+}
+
+.headerTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.headerSubtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+}
+
+/* Main Two-Column Layout */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Form Card */
+.formCard {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 2.25rem;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.formSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.formSectionTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.creatorBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  background: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary-color);
+  border: 1px solid rgba(var(--primary-rgb), 0.25);
+}
+
+/* Form Fields */
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.inputLabel {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.requiredStar {
+  color: var(--danger-color);
+  margin-left: 2px;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: var(--transition);
+  outline: none;
+}
+
+.inputField:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+}
+
+.inputField:focus + .inputIcon {
+  color: var(--primary-color);
+}
+
+.eyeToggle {
+  position: absolute;
+  right: 0.85rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.eyeToggle:hover {
+  color: var(--text-primary);
+}
+
+/* Dropzone Area */
+.dropzoneContainer {
+  margin-top: 0.25rem;
+}
+
+.dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.25s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.dropzoneActive {
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-rgb), 0.08);
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);
+  transform: scale(1.01);
+}
+
+.dropzoneHasLogo {
+  border-style: solid;
+  border-color: rgba(var(--primary-rgb), 0.4);
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+.dropzoneEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 0;
+}
+
+.dropzoneIconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.dropzoneMainText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dropzoneSubText {
+  font-size: 0.775rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Selected Logo Preview in Dropzone */
+.logoPreviewContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 0.5rem;
+}
+
+.logoPreviewLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.previewLogoImg {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.35rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.previewInfo {
+  text-align: left;
+}
+
+.previewTeamName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.2rem;
+}
+
+.previewUrl {
+  font-size: 0.725rem;
+  color: var(--text-secondary);
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.clearLogoBtn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.clearLogoBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+/* Submit Action Button */
+.submitBtn {
+  margin-top: 1rem;
+  padding: 0.9rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.submitBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Side Box: Official Logos */
+.logosSidebarCard {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.logosHeader {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logosTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logosSubtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.logosGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.logoItemCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 1.15rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.logoItemCard:active {
+  cursor: grabbing;
+}
+
+.logoItemCard:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2), 0 0 12px rgba(var(--primary-rgb), 0.2);
+}
+
+.logoItemSelected {
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-rgb), 0.08);
+  box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.3);
+}
+
+.selectedBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--primary-color);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.logoItemImg {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+  transition: transform 0.2s ease;
+}
+
+.logoItemCard:hover .logoItemImg {
+  transform: scale(1.1);
+}
+
+.logoItemName {
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+  line-height: 1.25;
+}
+
+.logoItemCode {
+  font-size: 0.675rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.dragHint {
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0.8;
+}
+
+/* Toast / Snackbar Notifications */
+.snackbar {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #ffffff;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  max-width: 440px;
+}
+
+.snackbarSuccess {
+  border-left: 4px solid #10b981;
+}
+
+.snackbarError {
+  border-left: 4px solid #ef4444;
+}
+
+.snackbarIconSuccess {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.snackbarIconError {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.snackbarText {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 960px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -136,14 +136,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkInitialSession = async () => {
-      if (user && user.token && user.token !== 'local-session') {
+      if (user && user.token && user.token !== 'local-session' && user.token !== 'team-session' && !user.isTeam) {
         await validateSession(user);
       }
       if (league) {
         applyLeagueTheme(league.id);
       }
       // Load preferences into memory on boot if user is already logged in
-      if (user && user.username) {
+      if (user && user.username && !user.isTeam) {
         await loadPreferences(user.username);
       }
       setLoading(false);
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }) => {
   }, [league]);
 
   const validateSession = async (currUser) => {
-    if (!currUser || !currUser.token || currUser.token === 'local-session') return true;
+    if (!currUser || !currUser.token || currUser.token === 'local-session' || currUser.token === 'team-session' || currUser.isTeam) return true;
 
     try {
       const response = await fetch(API_URL, {
@@ -240,7 +240,7 @@ export const AuthProvider = ({ children }) => {
           // Load preferences into memory right after login — ready for the dashboard
           await loadPreferences(username);
 
-          return userData;
+          return { ...userData, league: leagueData, loginData: parsedData };
         }
       }
 
@@ -251,6 +251,29 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loginTeamSession = (teamData) => {
+    const leagueData = LEAGUES.ILT;
+    const userData = {
+      username: teamData.Team_Username,
+      name: teamData.Team_Name,
+      isTeam: true,
+      teamId: teamData.Team_Id,
+      logoUrl: teamData.logoUrl,
+      token: 'team-session'
+    };
+
+    setUser(userData);
+    setLeague(leagueData);
+    setLoginData({ isTeam: true, teamData });
+
+    localStorage.setItem('player_registry_user', JSON.stringify(userData));
+    localStorage.setItem('player_registry_league', JSON.stringify(leagueData));
+    localStorage.setItem('player_registry_login_data', JSON.stringify({ isTeam: true, teamData }));
+
+    applyLeagueTheme('ILT');
+    return userData;
   };
 
   const logout = () => {
@@ -265,7 +288,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, league, login, logout, validateSession, loading, preferences, updatePreference, loginData }}>
+    <AuthContext.Provider value={{ user, league, login, loginTeamSession, logout, validateSession, loading, preferences, updatePreference, loginData }}>
       {children}
       {toast && (
         <div className="toast-container">

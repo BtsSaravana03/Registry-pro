@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Bell, User, LogOut, ChevronDown, Sun, Moon, ShieldCheck, Table, FileText, Settings, Menu, UserPlus, FileSpreadsheet } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Bell, User, LogOut, ChevronDown, Sun, Moon, ShieldCheck, Table, FileText, Settings, Menu, UserPlus, FileSpreadsheet, LayoutDashboard, ShieldPlus, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Navbar.module.css';
 
 const Navbar = ({ onLogout, theme, onThemeToggle, onMobileMenuToggle }) => {
   const { user, league, loginData } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
+  const location = useLocation();
+
+  const isAgent99 = Number(loginData?.agentId) === 99;
 
   return (
     <nav className={`${styles.navbar} glass`}>
@@ -22,19 +25,23 @@ const Navbar = ({ onLogout, theme, onThemeToggle, onMobileMenuToggle }) => {
         )}
         <div className={styles.brandContainer}>
           <img
-            src={league?.logo || "https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png"}
-            alt={league?.name || "Kadamba Logo"}
+            src={user?.logoUrl || league?.logo || "https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png"}
+            alt={user?.name || league?.name || "Logo"}
             className={styles.logoImg}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = league?.logo || "https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png";
+            }}
           />
           <span className={styles.brandText}>
-            {league?.name || 'PlayerHub Pro'}
+            {user?.isTeam ? user.name : (league?.name || 'PlayerHub Pro')}
           </span>
         </div>
       </div>
 
-      {/* Center Section: Navigation Links (Only shown for ILT) */}
+      {/* Center Section: Navigation Links */}
       <div className={styles.centerSection}>
-        {league?.id === 'ILT' && [
+        {(league?.id === 'ILT' && !isAgent99 && !user?.isTeam) && [
           { path: '/', label: 'Players', icon: <Table size={18} /> },
           { path: '/reports', label: 'Reports', icon: <FileText size={18} /> },
           ...(loginData?.agentId !== 100 ? [
@@ -52,6 +59,24 @@ const Navbar = ({ onLogout, theme, onThemeToggle, onMobileMenuToggle }) => {
             {item.label}
           </NavLink>
         ))}
+
+        {user?.isTeam && [
+          { path: '/eoi-team-dashboard?tab=dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, tab: 'dashboard' },
+          { path: '/eoi-team-dashboard?tab=eoi', label: 'EOI', icon: <Users size={18} />, tab: 'eoi' }
+        ].map(item => {
+          const currentTab = new URLSearchParams(location.search).get('tab') || 'dashboard';
+          const isTabActive = location.pathname.includes('/eoi-team-dashboard') && currentTab === item.tab;
+          return (
+            <NavLink
+              key={item.tab}
+              to={item.path}
+              className={`${styles.navLink} ${isTabActive ? styles.navLinkActive : ''}`}
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+          );
+        })}
       </div>
 
       {/* Right Section: Theme, Notifs, Profile */}

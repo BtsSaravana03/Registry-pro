@@ -1,26 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Lock, AlertCircle, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { teamService } from '../services/teamService';
+import {
+  User,
+  Lock,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  Shield,
+  ArrowRightLeft
+} from 'lucide-react';
 import styles from './Login.module.css';
 
 const LoginPage = () => {
+  // Admin Login States
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
 
-  // Reset Password Modal States
+  // Team Login States
+  const [isTeamLoginMode, setIsTeamLoginMode] = useState(false);
+  const [teamUsername, setTeamUsername] = useState('');
+  const [teamPassword, setTeamPassword] = useState('');
+  const [teamError, setTeamError] = useState('');
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [showTeamPassword, setShowTeamPassword] = useState(false);
+
+  // Reset Password Modal States (Admin only)
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetMessage, setResetMessage] = useState('');
   const [resetError, setResetError] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, loginTeamSession } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,14 +48,26 @@ const LoginPage = () => {
     }
   }, []);
 
-  const handleSubmit = async (e) => {
+  // Admin Login Submit Handler
+  const handleAdminSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      await login(username, password);
-      navigate('/');
+      const authResult = await login(username, password);
+      const savedLogin = localStorage.getItem('player_registry_login_data');
+      const loginInfo = authResult?.loginData || (savedLogin ? JSON.parse(savedLogin) : null);
+      const savedLeague = localStorage.getItem('player_registry_league');
+      const leagueInfo = authResult?.league || (savedLeague ? JSON.parse(savedLeague) : null);
+
+      const isAgent99ILT = (leagueInfo?.id === 'ILT' || loginInfo?.league === 'ILT') && Number(loginInfo?.agentId) === 99;
+
+      if (isAgent99ILT) {
+        navigate('/ilt-dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'Invalid username or password');
@@ -47,8 +76,47 @@ const LoginPage = () => {
     }
   };
 
-  const handleResetPassword = async () => {
+  // Team Login Submit Handler
+  const handleTeamSubmit = async (e) => {
+    e.preventDefault();
+    setTeamError('');
 
+    if (!teamUsername.trim()) {
+      setTeamError('Team Username is required.');
+      return;
+    }
+    if (!teamPassword.trim()) {
+      setTeamError('Team Password is required.');
+      return;
+    }
+
+    setTeamLoading(true);
+
+    try {
+      const response = await teamService.loginTeam({
+        teamUsername: teamUsername.trim(),
+        teamPassword: teamPassword.trim()
+      });
+
+      const teamData = response.data || response;
+      if (!teamData || !teamData.Team_Id) {
+        throw new Error('Invalid team response from server.');
+      }
+
+      // Set team session in context & navigate to EOI Team Dashboard
+      loginTeamSession(teamData);
+      navigate('/eoi-team-dashboard');
+
+    } catch (err) {
+      console.error('Team login error:', err);
+      setTeamError(err.message || 'Invalid team username or password.');
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  // Reset Password Handler
+  const handleResetPassword = async () => {
     const payload = {
       Checkout: "updatepassword",
       FirstName: "", MiddleName: "", Surname: "", Mobile: "",
@@ -56,7 +124,6 @@ const LoginPage = () => {
       PlayingRoles: "", BattingHandedness: "", PreferredBowlingStyle: "",
       PreferredBattingOrders: "", email: resetEmail,
     };
-
 
     setResetError('');
     setResetMessage('');
@@ -77,7 +144,6 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-
       let parsedBody = data;
       if (data.body && typeof data.body === 'string') {
         parsedBody = JSON.parse(data.body);
@@ -100,105 +166,236 @@ const LoginPage = () => {
   return (
     <div className={styles.loginContainer}>
       {/* Dynamic Background Elements */}
-      <div className={styles.bgBlob} aria-hidden="true" />
-      <div className={styles.bgBlob2} aria-hidden="true" />
-      <div className={styles.bgBlob3} aria-hidden="true" />
-      <div className={styles.meshGradient} aria-hidden="true" />
+      <div className={`${styles.bgBlob} ${isTeamLoginMode ? styles.bgBlobTeam : ''}`} aria-hidden="true" />
+      <div className={`${styles.bgBlob2} ${isTeamLoginMode ? styles.bgBlob2Team : ''}`} aria-hidden="true" />
+      <div className={`${styles.bgBlob3} ${isTeamLoginMode ? styles.bgBlob3Team : ''}`} aria-hidden="true" />
+      <div className={`${styles.meshGradient} ${isTeamLoginMode ? styles.meshGradientTeam : ''}`} aria-hidden="true" />
 
-      <div className={`glass ${styles.loginCard}`}>
-        <div className={styles.headerArea}>
-          <div className={styles.logoBox}>
-            <img
-              src="https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png"
-              alt="Kadamba Logo"
-              className={styles.logoImage}
-            />
+      {/* 3D Flip Container for Login Cards */}
+      <div className={styles.cardFlipWrapper}>
+        <div className={`${styles.flipCardInner} ${isTeamLoginMode ? styles.flipped : ''}`}>
+
+          {/* FRONT: Standard Admin Login Card */}
+          <div className={styles.cardFront}>
+            <div className={`glass ${styles.loginCard}`}>
+              <div className={styles.headerArea}>
+                <div className={styles.logoBox}>
+                  <img
+                    src="https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png"
+                    alt="Kadamba Logo"
+                    className={styles.logoImage}
+                  />
+                </div>
+                <h1 className={styles.title}>REGISTRY <span className={styles.titleHighlight}>Pro</span></h1>
+              </div>
+
+              <form onSubmit={handleAdminSubmit} className={styles.formArea}>
+                {error && (
+                  <div className={styles.errorBox} role="alert">
+                    <AlertCircle size={18} />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel} htmlFor="username">Username</label>
+                  <div className={styles.inputWrapper}>
+                    <User size={18} className={styles.inputIcon} />
+                    <input
+                      id="username"
+                      type="text"
+                      className={`input-field ${styles.inputField}`}
+                      placeholder="Enter your username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                      autoComplete="username"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel} htmlFor="password">Password</label>
+                  <div className={styles.inputWrapper}>
+                    <Lock size={18} className={styles.inputIcon} />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      className={`input-field ${styles.inputField}`}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.eyeToggle}
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`btn btn-primary ${styles.loginBtn}`}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className={styles.btnContent}>
+                      <div className="loading-spinner" style={{ width: '18px', height: '18px', borderTopColor: '#fff' }} />
+                      Authenticating...
+                    </span>
+                  ) : (
+                    'Sign In to Dashboard'
+                  )}
+                </button>
+
+                <div style={{ justifyContent: "center", display: "flex", alignItems: "center", marginTop: "20px" }}>
+                  <p className={styles.helperText}>
+                    Forgot Password? <span className={styles.reglinkText} onClick={() => setResetModalOpen(true)} style={{ cursor: 'pointer' }}>Reset Password</span>
+                  </p>
+                </div>
+
+
+                {/* Mode Switch Pill Button (Below Card) */}
+                <div className={styles.switchContainer}>
+                  <button
+                    type="button"
+                    className={`${styles.switchBtn} ${isTeamLoginMode ? '' : styles.switchBtnTeam}`}
+                    onClick={() => {
+                      setIsTeamLoginMode(!isTeamLoginMode);
+                      setError('');
+                      setTeamError('');
+                    }}
+                  >
+                    <ArrowRightLeft size={14} />
+                    <span>{isTeamLoginMode ? 'Switch to Registration Portal' : 'Switch to Teams Login'}</span>
+                  </button>
+                </div>
+
+                <footer className={styles.loginFooter}>
+                  <p className={styles.helperText}>Kadamba</p>
+                </footer>
+
+              </form>
+            </div>
           </div>
-          <h1 className={styles.title}>REGISTRY <span className={styles.titleHighlight}>Pro</span></h1>
-          {/* <p className={styles.subtitle}>Enterprise-Grade Sports Management</p> */}
+
+          {/* BACK: Franchise Team Login Card (ILT League Styled) */}
+          <div className={styles.cardBack}>
+            <div className={`glass ${styles.loginCard} ${styles.teamLoginCard}`}>
+              <div className={styles.headerArea}>
+                <div className={styles.logoBox}>
+                  <img
+                    src="https://cloud.cricket-21.com/c21adminpanel/images/kadamba_logo.png"
+                    alt="Kadamba Logo"
+                    className={styles.logoImage}
+                  />
+                </div>
+                <h1 className={styles.title}>REGISTRY <span className={styles.titleHighlightILT}>Pro</span></h1>
+                <p className={styles.subtitle} style={{ color: '#f306a7', fontSize: '0.8rem', fontWeight: 600, marginTop: '0.25rem' }}>
+                  Franchise Team Access
+                </p>
+              </div>
+
+              <form onSubmit={handleTeamSubmit} className={styles.formArea}>
+                {teamError && (
+                  <div className={styles.errorBox} role="alert">
+                    <AlertCircle size={18} />
+                    <span>{teamError}</span>
+                  </div>
+                )}
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel} htmlFor="teamUsername">Team Username</label>
+                  <div className={styles.inputWrapper}>
+                    <Shield size={18} className={styles.inputIcon} style={{ color: '#f306a7' }} />
+                    <input
+                      id="teamUsername"
+                      type="text"
+                      className={`input-field ${styles.inputField}`}
+                      placeholder="Enter team username"
+                      value={teamUsername}
+                      onChange={(e) => setTeamUsername(e.target.value)}
+                      required
+                      autoComplete="username"
+                      style={{ borderColor: 'rgba(243, 6, 167, 0.3)' }}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel} htmlFor="teamPassword">Team Password</label>
+                  <div className={styles.inputWrapper}>
+                    <Lock size={18} className={styles.inputIcon} style={{ color: '#f306a7' }} />
+                    <input
+                      id="teamPassword"
+                      type={showTeamPassword ? 'text' : 'password'}
+                      className={`input-field ${styles.inputField}`}
+                      placeholder="Enter team password"
+                      value={teamPassword}
+                      onChange={(e) => setTeamPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      style={{ borderColor: 'rgba(243, 6, 167, 0.3)' }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.eyeToggle}
+                      onClick={() => setShowTeamPassword((v) => !v)}
+                      aria-label={showTeamPassword ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showTeamPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Team Login Action Button */}
+                <button
+                  type="submit"
+                  className={styles.teamLoginBtn}
+                  disabled={teamLoading}
+                >
+                  {teamLoading ? (
+                    <span className={styles.btnContent}>
+                      <div className="loading-spinner" style={{ width: '18px', height: '18px', borderTopColor: '#fff' }} />
+                      Signing In...
+                    </span>
+                  ) : (
+                    'Sign In to EOI'
+                  )}
+                </button>
+                <div className={styles.switchContainer}>
+                  <button
+                    type="button"
+                    className={`${styles.switchBtn} ${isTeamLoginMode ? '' : styles.switchBtnTeam}`}
+                    onClick={() => {
+                      setIsTeamLoginMode(!isTeamLoginMode);
+                      setError('');
+                      setTeamError('');
+                    }}
+                  >
+                    <ArrowRightLeft size={14} />
+                    <span>{isTeamLoginMode ? 'Switch to Registration Portal' : 'Switch to Teams Login'}</span>
+                  </button>
+                </div>
+                <footer className={styles.loginFooter} style={{ marginTop: '1.25rem' }}>
+                  <p className={styles.helperText}>Kadamba</p>
+                </footer>
+              </form>
+            </div>
+          </div>
+
         </div>
-
-        <form onSubmit={handleSubmit} className={styles.formArea}>
-          {error && (
-            <div className={styles.errorBox} role="alert">
-              <AlertCircle size={18} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className={styles.inputGroup}>
-            <label className={styles.inputLabel} htmlFor="username">Username</label>
-            <div className={styles.inputWrapper}>
-              <User size={18} className={styles.inputIcon} />
-              <input
-                id="username"
-                type="text"
-                className={`input-field ${styles.inputField}`}
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoComplete="username"
-              />
-            </div>
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.inputLabel} htmlFor="password">Password</label>
-            <div className={styles.inputWrapper}>
-              <Lock size={18} className={styles.inputIcon} />
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                className={`input-field ${styles.inputField}`}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className={styles.eyeToggle}
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className={`btn btn-primary ${styles.loginBtn}`}
-            disabled={loading}
-          >
-            {loading ? (
-              <span className={styles.btnContent}>
-                <div className="loading-spinner" style={{ width: '18px', height: '18px', borderTopColor: '#fff' }}></div>
-                Authenticating...
-              </span>
-            ) : (
-              'Sign In to Dashboard'
-            )}
-          </button>
-
-          <div style={{ justifyContent: "center", display: "flex", alignItems: "center", marginTop: "20px" }}>
-            <p className={styles.helperText}>
-              Forgot Password? <span className={styles.reglinkText} onClick={() => setResetModalOpen(true)} style={{ cursor: 'pointer' }}>Reset Password</span>
-            </p>
-          </div>
-
-          <footer className={styles.loginFooter}>
-            <p className={styles.helperText}>
-              Kadamba
-            </p>
-          </footer>
-        </form>
       </div>
 
-      {/* Reset Password Modal */}
+      {/* Reset Password Modal (Admin Mode) */}
       {resetModalOpen && (
         <div className={styles.modalOverlay}>
           <div className={`glass ${styles.loginCard}`} style={{ maxWidth: '400px', animation: 'none' }}>
@@ -239,6 +436,7 @@ const LoginPage = () => {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
               <button
+                type="button"
                 className={`btn btn-secondary`}
                 onClick={() => { setResetModalOpen(false); setResetEmail(''); setResetError(''); setResetMessage(''); }}
                 disabled={resetLoading}
@@ -247,6 +445,7 @@ const LoginPage = () => {
                 Cancel
               </button>
               <button
+                type="button"
                 className={`btn btn-primary ${styles.loginBtn}`}
                 onClick={handleResetPassword}
                 disabled={resetLoading}
@@ -264,5 +463,6 @@ const LoginPage = () => {
       )}
     </div>
   );
-}
+};
+
 export default LoginPage;
