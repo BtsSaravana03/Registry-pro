@@ -3,18 +3,19 @@ import {
   Search, Filter, Settings, Download, X, Loader,
   ChevronLeft, ChevronRight, Check, Eye, ExternalLink,
   RotateCw, RotateCcw, ZoomIn, ZoomOut, Maximize, MoreVertical,
-  Users, ArrowUpDown, ChevronDown, Calendar, FilterX, Edit, Trash2, Upload
+  Users, ArrowUpDown, ChevronDown, Calendar, FilterX, Edit, Trash2, Upload, Plus
 } from 'lucide-react';
 import { playerService } from '../../services/playerService';
 import { teamService } from '../../services/teamService';
 import { useAuth } from '../../context/AuthContext';
+import { useMail } from '../../context/MailContext';
 import { FULL_MEMBERS, ASSOCIATE_MEMBERS, OTHER_FULL_MEMBERS, COUNTRY_LIST } from '../../pages/PlayerRegistration';
 import regStyles from '../../pages/PlayerRegistration.module.css';
 import styles from './DataTable.module.css';
 import DatePicker from '../ui/DatePicker';
 import { formatValue } from '../../utils/formatters';
 
-const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = false, externalFilters = {}, dashboardMode = false, onEOIChange = null }) => {
+const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = false, externalFilters = {}, dashboardMode = false, onEOIChange = null, eoiRestrictions = null, eoiPlayers = null }) => {
   const extractLink = (val) => {
     if (typeof val !== 'string') return null;
     const match = val.match(/(https?:\/\/[^\s]+)/i);
@@ -41,7 +42,25 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
-  const { user, league, preferences, updatePreference } = useAuth();
+  const { user, league, preferences, updatePreference, loginData } = useAuth();
+  const isAgent100 = Number(loginData?.agentId) === 100;
+  const [activeMailMenuId, setActiveMailMenuId] = useState(null);
+
+  let addToInvalidPassport, addToNoPassport;
+  try {
+    const mailCtx = useMail();
+    addToInvalidPassport = mailCtx.addToInvalidPassport;
+    addToNoPassport = mailCtx.addToNoPassport;
+  } catch (e) {
+    // outside mail context
+  }
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMailMenuId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const [activeTab, setActiveTab] = useState('player'); // 'player' or 'staff'
   const isInitializing = useRef(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -107,10 +126,14 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
           });
 
           // Move url/link columns to the end
-          const sortedCols = [
+          let sortedCols = [
             ...cols.filter(c => !c.key.toLowerCase().includes('url') && !c.key.toLowerCase().includes('link')),
             ...cols.filter(c => c.key.toLowerCase().includes('url') || c.key.toLowerCase().includes('link'))
           ];
+
+          if (isAgent100) {
+            sortedCols.push({ key: '__send_mail__', label: 'Send Mail' });
+          }
 
           setAvailableColumns(sortedCols);
 
@@ -218,9 +241,14 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
                 kLow === 'member_type' || labelLow === 'member_type' || kLow === 'selectedmember' ||
                 kLow.includes('profile_link') || kLow.includes('profile') || labelLow.includes('profile')
               );
+              const isEOIAdminDefaultCol = (customCheckoutParam === 'getEOIAdminPlayers' || !isTeamView) && (
+                kLow === 'team_names' || kLow === 'team_logourls' ||
+                kLow.includes('team_names') || kLow.includes('team_logourl') ||
+                labelLow.includes('team_names') || labelLow.includes('team_logourl')
+              );
 
-              // Always show Index, Gender, or Team Default columns by default; all others by position
-              if (isIndex || isGender || isTeamDefaultCol) {
+              // Always show Index, Gender, Team Default, or EOI Admin Default columns by default; all others by position
+              if (isIndex || isGender || isTeamDefaultCol || isEOIAdminDefaultCol || col.key === '__send_mail__') {
                 initialVisCols[col.key] = true;
               } else {
                 initialVisCols[col.key] = index < 6;
@@ -253,8 +281,16 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
                 const filsArray = parsedPrefs.f || parsedPrefs.filters;
 
                 if (Array.isArray(colsArray)) {
-                  // Restore exactly what was saved — no columns are force-added
                   finalVisCols = colsArray.reduce((acc, col) => ({ ...acc, [col]: true }), {});
+                  if (customCheckoutParam === 'getEOIAdminPlayers' || !isTeamView) {
+                    currentCols.forEach(col => {
+                      const kLow = col.key.toLowerCase();
+                      const labelLow = col.label.toLowerCase();
+                      if (kLow === 'team_names' || kLow === 'team_logourls' || kLow.includes('team_names') || kLow.includes('team_logourl') || labelLow.includes('team_names') || labelLow.includes('team_logourl')) {
+                        finalVisCols[col.key] = true;
+                      }
+                    });
+                  }
                 } else if (colsArray && typeof colsArray === 'object') {
                   finalVisCols = colsArray;
                 }
@@ -311,8 +347,17 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
 
       isInitializing.current = true;
       if (Array.isArray(colsArray)) {
-        // Restore exactly what was saved — no columns are force-added
-        setVisibleColumns(colsArray.reduce((acc, col) => ({ ...acc, [col]: true }), {}));
+        const restoredCols = colsArray.reduce((acc, col) => ({ ...acc, [col]: true }), {});
+        if (customCheckoutParam === 'getEOIAdminPlayers' || !isTeamView) {
+          availableColumns.forEach(col => {
+            const kLow = col.key.toLowerCase();
+            const labelLow = col.label.toLowerCase();
+            if (kLow === 'team_names' || kLow === 'team_logourls' || kLow.includes('team_names') || kLow.includes('team_logourl') || labelLow.includes('team_names') || labelLow.includes('team_logourl')) {
+              restoredCols[col.key] = true;
+            }
+          });
+        }
+        setVisibleColumns(restoredCols);
       }
       if (Array.isArray(filsArray)) {
         setVisibleFilters(filsArray.reduce((acc, col) => ({ ...acc, [col]: true }), { search: true }));
@@ -762,6 +807,47 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
       return;
     }
 
+    if (newStatus === 1 && eoiRestrictions && (isTeamView || user?.isTeam)) {
+      const getCategoryKey = (p) => {
+        const mem = String(p.Member_Type || p.SelectedMember || p.Country || p.SelectedNation || '').toLowerCase().trim();
+        if (mem.includes('afghanistan')) return 'Afghanistan';
+        if (mem.includes('ireland')) return 'Ireland';
+        if (mem.includes('associate')) return 'ICC_Associate_Member';
+        if (mem.includes('full member') || mem.includes('full')) return 'ICC_Full_Member';
+        return null;
+      };
+
+      const catKey = getCategoryKey(player);
+      const catLimit = catKey ? Number(eoiRestrictions[catKey] || 0) : 0;
+      const totalLimit = Number(eoiRestrictions.total || 0);
+
+      const pool = eoiPlayers && eoiPlayers.length > 0 ? eoiPlayers : players;
+
+      const currentCatCount = pool.filter(p => {
+        const isInterested = Number(p.EOI) === 1 || p.EOI === '1' || p.EOI === true;
+        if (!isInterested) return false;
+        return getCategoryKey(p) === catKey;
+      }).length;
+
+      const currentTotalCount = pool.filter(p => Number(p.EOI) === 1 || p.EOI === '1' || p.EOI === true).length;
+
+      if (catLimit > 0 && currentCatCount >= catLimit) {
+        setTableAlertModal({
+          isOpen: true,
+          message: "You have reached the available player limit. Please remove a player to continue"
+        });
+        return;
+      }
+
+      if (totalLimit > 0 && currentTotalCount >= totalLimit) {
+        setTableAlertModal({
+          isOpen: true,
+          message: "You have reached the available player limit. Please remove a player to continue"
+        });
+        return;
+      }
+    }
+
     // Optimistic local state update in memory
     setPlayers(prev => prev.map(p => {
       if (String(p.ID || p.Id || p.id) === String(playerId)) {
@@ -923,9 +1009,10 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
 
   const handleExport = async () => {
     try {
-      // Ignore current filters and fetch all records
-      const exportFilters = { page: 1, pageSize: 100000, __types: availableFilters };
-      const res = await playerService.getPlayers(exportFilters);
+      const checkoutParam = customCheckoutParam || (activeTab === 'staff' ? league?.staffParams : league?.params);
+      // Fetch all records for export with checkoutParam and active externalFilters
+      const exportFilters = { page: 1, pageSize: 100000, ...(externalFilters || {}), __types: availableFilters };
+      const res = await playerService.getPlayers(exportFilters, checkoutParam);
       const exportData = res.data || [];
 
       // Export all available columns, ignoring toggled visibility
@@ -1300,20 +1387,20 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
                         onClick={() => {
                           const isUrlCol = col.key.toLowerCase().includes('url') || col.label.toLowerCase().includes('url');
                           const isLinkCol = col.key.toLowerCase().includes('link') || col.label.toLowerCase().includes('link');
-                          const isSortable = col.key !== '__index__' && !isUrlCol && !isLinkCol;
+                          const isSortable = col.key !== '__index__' && col.key !== '__send_mail__' && !isUrlCol && !isLinkCol;
                           if (isSortable) handleSort(col.key);
                         }}
                         className={(() => {
                           const isUrlCol = col.key.toLowerCase().includes('url') || col.label.toLowerCase().includes('url');
                           const isLinkCol = col.key.toLowerCase().includes('link') || col.label.toLowerCase().includes('link');
-                          return (col.key !== '__index__' && !isUrlCol && !isLinkCol) ? styles.pointerCursor : '';
+                          return (col.key !== '__index__' && col.key !== '__send_mail__' && !isUrlCol && !isLinkCol) ? styles.pointerCursor : '';
                         })()}
                       >
                         <div className={styles.tableHeaderCellContent}>
                           {col.label} {(() => {
                             const isUrlCol = col.key.toLowerCase().includes('url') || col.label.toLowerCase().includes('url');
                             const isLinkCol = col.key.toLowerCase().includes('link') || col.label.toLowerCase().includes('link');
-                            return (col.key !== '__index__' && !isUrlCol && !isLinkCol) && (
+                            return (col.key !== '__index__' && col.key !== '__send_mail__' && !isUrlCol && !isLinkCol) && (
                               <ArrowUpDown size={14} />
                             );
                           })()}
@@ -1338,6 +1425,114 @@ const DataTable = ({ onViewDetails, customCheckoutParam = null, isTeamView = fal
                           {(() => {
                             if (col.key === '__index__') {
                               return (filters.page - 1) * filters.pageSize + idx + 1;
+                            }
+
+                            if (col.key === '__send_mail__') {
+                              const playerId = player.id || player.PlayerId || player.ReferenceNo || idx;
+                              const isMenuOpen = activeMailMenuId === playerId;
+                              return (
+                                <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      padding: 0,
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                                      color: '#ffffff',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                                      transition: 'transform 0.15s ease'
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMailMenuId(isMenuOpen ? null : playerId);
+                                    }}
+                                    title="Send Mail options"
+                                  >
+                                    <Plus size={18} />
+                                  </button>
+
+                                  {isMenuOpen && (
+                                    <div
+                                      style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        right: 0,
+                                        marginTop: '6px',
+                                        background: '#ffffff',
+                                        borderRadius: '10px',
+                                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.18)',
+                                        border: '1px solid #e2e8f0',
+                                        zIndex: 9999,
+                                        minWidth: '210px',
+                                        overflow: 'hidden'
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          padding: '12px 16px',
+                                          fontSize: '0.85rem',
+                                          fontWeight: 600,
+                                          color: '#1e293b',
+                                          cursor: 'pointer',
+                                          borderBottom: '1px solid #f1f5f9',
+                                          transition: 'background 0.2s',
+                                          textAlign: 'left'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setActiveMailMenuId(null);
+                                          if (addToInvalidPassport) {
+                                            addToInvalidPassport({
+                                              refno: player.ReferenceNo || player.refno || player.RegistrationNo || player.id || player.ID,
+                                              firstname: player.FirstName || player.firstname || player.PlayerName || '',
+                                              email: player.Email || player.email || '',
+                                              playerName: `${player.FirstName || ''} ${player.Surname || ''}`.trim() || player.FirstName || 'Player'
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        Move to Invalid Passport
+                                      </div>
+                                      <div
+                                        style={{
+                                          padding: '12px 16px',
+                                          fontSize: '0.85rem',
+                                          fontWeight: 600,
+                                          color: '#1e293b',
+                                          cursor: 'pointer',
+                                          transition: 'background 0.2s',
+                                          textAlign: 'left'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setActiveMailMenuId(null);
+                                          if (addToNoPassport) {
+                                            addToNoPassport({
+                                              refno: player.ReferenceNo || player.refno || player.RegistrationNo || player.id || player.ID,
+                                              firstname: player.FirstName || player.firstname || player.PlayerName || '',
+                                              email: player.Email || player.email || '',
+                                              playerName: `${player.FirstName || ''} ${player.Surname || ''}`.trim() || player.FirstName || 'Player'
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        Move to No Passport
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
                             }
 
                             const val = player[col.key];

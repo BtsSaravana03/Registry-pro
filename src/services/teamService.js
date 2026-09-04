@@ -322,5 +322,99 @@ export const teamService = {
       console.error("Error deleting player EOI in teamService:", err);
       throw err;
     }
+  },
+
+  getEOIRestrictions: async () => {
+    try {
+      const payload = {
+        ...BASE_PAYLOAD,
+        Checkout: "getEOIRestrictions"
+      };
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json();
+      let parsedData = json || {};
+
+      if (json && json.body) {
+        if (typeof json.body === 'string') {
+          try {
+            parsedData = JSON.parse(json.body);
+          } catch (e) {
+            console.error("Error parsing response body:", e);
+          }
+        } else if (typeof json.body === 'object') {
+          parsedData = json.body;
+        }
+      }
+
+      const rows = parsedData.data || json.data || (Array.isArray(parsedData) ? parsedData : []);
+      if (Array.isArray(rows) && rows.length > 0) {
+        return rows[0];
+      }
+      return null;
+    } catch (err) {
+      console.error("Error fetching EOI restrictions in teamService:", err);
+      throw err;
+    }
+  },
+
+  saveEOIRestrictions: async (restrictions) => {
+    try {
+      const payload = {
+        ...BASE_PAYLOAD,
+        Checkout: "saveEOIRestrictions",
+        ...restrictions
+      };
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json();
+      let parsedData = json || {};
+
+      if (json && json.body) {
+        if (typeof json.body === 'string') {
+          try {
+            parsedData = JSON.parse(json.body);
+          } catch (e) {
+            console.error("Error parsing response body:", e);
+          }
+        } else if (typeof json.body === 'object') {
+          parsedData = json.body;
+        }
+      }
+
+      const statusCode = json?.statusCode || response.status;
+      const isSuccess = response.ok && (
+        statusCode === 200 ||
+        statusCode === 201 ||
+        parsedData?.success === true ||
+        parsedData?.success === 'true' ||
+        parsedData?.statusCode === 200 ||
+        parsedData?.statusCode === 201
+      );
+
+      if (!isSuccess) {
+        const errorMsg = parsedData?.message || json?.message || 'Failed to save EOI restrictions.';
+        throw new Error(errorMsg);
+      }
+
+      return parsedData;
+    } catch (err) {
+      console.error("Error saving EOI restrictions in teamService:", err);
+      throw err;
+    }
   }
 };

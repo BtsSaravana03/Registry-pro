@@ -4,10 +4,10 @@ import DataTable from '../components/players/DataTable';
 import { playerService } from '../services/playerService';
 import { teamService } from '../services/teamService';
 import { useAuth } from '../context/AuthContext';
-import afgLogo from '../assets/ILT/afg-logo.webp';
+import afgLogo from '../assets/ILT/afg-logo.png';
 import iccLogo from '../assets/ILT/icc.png';
 import ireLogo from '../assets/ILT/ire.jpg';
-import iltGround from '../assets/ILT/ilt-ground.webp';
+import iltGround from '../assets/ILT/ilt-ground.png';
 import { Users, Shield, Sparkles, CheckCircle2, Bell, ChevronLeft, ChevronRight, Star, Home } from 'lucide-react';
 import styles from './EOITeamDashboard.module.css';
 
@@ -34,10 +34,32 @@ const EOITeamDashboardPage = () => {
   const [allTeams, setAllTeams] = useState([]);
   const [loadingStats, setLoadingStats] = useState(false);
   const [lastUpdated, setLastUpdated] = useState('');
+  const [eoiRestrictions, setEoiRestrictions] = useState(null);
 
   // Carousel State for Admin View
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+
+  // Fetch EOI restrictions on mount
+  useEffect(() => {
+    const fetchRestrictions = async () => {
+      try {
+        const data = await teamService.getEOIRestrictions();
+        if (data) {
+          setEoiRestrictions({
+            Afghanistan: data.Afghanistan !== null && data.Afghanistan !== undefined ? Number(data.Afghanistan) : 0,
+            Ireland: data.Ireland !== null && data.Ireland !== undefined ? Number(data.Ireland) : 0,
+            ICC_Full_Member: data.ICC_Full_Member !== null && data.ICC_Full_Member !== undefined ? Number(data.ICC_Full_Member) : 0,
+            ICC_Associate_Member: data.ICC_Associate_Member !== null && data.ICC_Associate_Member !== undefined ? Number(data.ICC_Associate_Member) : 0,
+            total: data.total !== null && data.total !== undefined ? Number(data.total) : 0
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load EOI restrictions:", err);
+      }
+    };
+    fetchRestrictions();
+  }, []);
 
   // Fetch interested player stats for dashboard & teams
   useEffect(() => {
@@ -417,8 +439,16 @@ const EOITeamDashboardPage = () => {
                 {dashboardMemberCards.map(item => {
                   const count = stats[item.key] || 0;
                   const isSelected = selectedDashboardCard === item.key;
-                  return (
+                  let limit = 0;
+                  if (!isAgent99 && eoiRestrictions) {
+                    if (item.key === 'Afghanistan') limit = eoiRestrictions.Afghanistan;
+                    else if (item.key === 'Ireland') limit = eoiRestrictions.Ireland;
+                    else if (item.key === 'ICC Associate Member') limit = eoiRestrictions.ICC_Associate_Member;
+                    else if (item.key === 'ICC Full Member') limit = eoiRestrictions.ICC_Full_Member;
+                  }
+                  const displayCountStr = limit > 0 ? `${count} / ${limit}` : `${count}`;
 
+                  return (
                     <div
                       key={item.key}
                       className={`${styles.memberCard} ${isSelected ? styles.cardSelected : ''}`}
@@ -430,9 +460,6 @@ const EOITeamDashboardPage = () => {
                           <img src={item.logo} alt={item.label} className={styles.memberCardLogo} style={{ width: '58px', height: '58px' }} />
                           <span className={styles.memberCardLabel} style={{ fontSize: '1.5rem' }}>{item.label}</span>
                         </div>
-                        {/* <div className={styles.cardArrowBtn}>
-                          <ChevronRight size={16} />
-                        </div> */}
                       </div>
 
                       <div className={styles.cardDivider}></div>
@@ -440,7 +467,7 @@ const EOITeamDashboardPage = () => {
                       <div className={styles.memberCardBottomRow} style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
                         <div className={styles.countGroup}>
                           <span className={styles.memberCountSublabel}>INTERESTED PLAYERS</span>
-                          <span className={styles.memberBigCount}>{count}</span>
+                          <span className={styles.memberBigCount}>{displayCountStr}</span>
                         </div>
 
                         <div className={styles.playersCountTag}>
@@ -449,7 +476,6 @@ const EOITeamDashboardPage = () => {
                         </div>
                       </div>
                     </div>
-
                   );
                 })}
               </div>
@@ -531,6 +557,27 @@ const EOITeamDashboardPage = () => {
             <span className={styles.memberNavTitle}>Filter By Member:</span>
             {memberTypes.map((item) => {
               const isActive = activeMemberType === item.key;
+              let countStr = '';
+
+              if (!isAgent99 && eoiRestrictions) {
+                if (item.isAll) {
+                  const limit = eoiRestrictions.total ?? 0;
+                  countStr = `${stats.total}/${limit}`;
+                } else if (item.key === 'Afghanistan') {
+                  const limit = eoiRestrictions.Afghanistan ?? 0;
+                  countStr = `${stats['Afghanistan']}/${limit}`;
+                } else if (item.key === 'ICC Associate Member') {
+                  const limit = eoiRestrictions.ICC_Associate_Member ?? 0;
+                  countStr = `${stats['ICC Associate Member']}/${limit}`;
+                } else if (item.key === 'ICC Full Member') {
+                  const limit = eoiRestrictions.ICC_Full_Member ?? 0;
+                  countStr = `${stats['ICC Full Member']}/${limit}`;
+                } else if (item.key === 'Ireland') {
+                  const limit = eoiRestrictions.Ireland ?? 0;
+                  countStr = `${stats['Ireland']}/${limit}`;
+                }
+              }
+
               return (
                 <button
                   key={item.key || 'all'}
@@ -543,7 +590,25 @@ const EOITeamDashboardPage = () => {
                   ) : (
                     <Users size={16} />
                   )}
-                  <span>{item.label}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    {item.label}
+                    {countStr && (
+                      <span
+                        style={{
+                          marginLeft: '8px',
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          background: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(243, 6, 167, 0.15)',
+                          color: isActive ? '#ffffff' : '#f306a7',
+                          border: '1px solid rgba(243, 6, 167, 0.3)',
+                          fontSize: '0.78rem',
+                          fontWeight: 800
+                        }}
+                      >
+                        {countStr}
+                      </span>
+                    )}
+                  </span>
                 </button>
               );
             })}
@@ -556,6 +621,8 @@ const EOITeamDashboardPage = () => {
               isTeamView={!isAgent99}
               onEOIChange={handleEOIChange}
               externalFilters={activeMemberType ? { Member_Type: activeMemberType } : {}}
+              eoiRestrictions={eoiRestrictions}
+              eoiPlayers={eoiPlayers}
             />
           </div>
         </div>

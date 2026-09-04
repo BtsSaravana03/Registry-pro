@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { teamService, ILT_STATIC_LOGOS } from '../services/teamService';
+import afgLogo from '../assets/ILT/afg-logo.png';
+import iccLogo from '../assets/ILT/icc.png';
+import ireLogo from '../assets/ILT/ire.jpg';
 import {
   ArrowLeft,
   ShieldPlus,
@@ -15,9 +18,17 @@ import {
   Eye,
   EyeOff,
   Image as ImageIcon,
-  Check
+  Check,
+  Sparkles
 } from 'lucide-react';
 import styles from './ManageTeams.module.css';
+
+const MEMBER_SELECTOR_CARDS = [
+  { key: 'Afghanistan', label: 'Afghanistan', logo: afgLogo, accentColor: '#22c55e', dbField: 'Afghanistan' },
+  { key: 'ICC Associate Member', label: 'ICC Associate Member', logo: iccLogo, accentColor: '#3b82f6', dbField: 'ICC_Associate_Member' },
+  { key: 'ICC Full Member', label: 'ICC Full Member', logo: iccLogo, accentColor: '#6366f1', dbField: 'ICC_Full_Member' },
+  { key: 'Ireland', label: 'Ireland', logo: ireLogo, accentColor: '#22c55e', dbField: 'Ireland' }
+];
 
 const ManageTeamsPage = () => {
   const { league, loginData } = useAuth();
@@ -35,6 +46,18 @@ const ManageTeamsPage = () => {
   const [editLogoUrl, setEditLogoUrl] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [updating, setUpdating] = useState(false);
+
+  // Member Selectors Modal State
+  const [showMemberSelectorModal, setShowMemberSelectorModal] = useState(false);
+  const [memberSelectorCounts, setMemberSelectorCounts] = useState({
+    Afghanistan: 0,
+    Ireland: 0,
+    ICC_Full_Member: 0,
+    ICC_Associate_Member: 0,
+    total: 0
+  });
+  const [savingMemberSelectors, setSavingMemberSelectors] = useState(false);
+  const [fetchingMemberSelectors, setFetchingMemberSelectors] = useState(false);
 
   // Toast / Snackbar State
   const [toast, setToast] = useState(null);
@@ -120,6 +143,69 @@ const ManageTeamsPage = () => {
     }
   };
 
+  const handleOpenMemberSelectors = async () => {
+    setShowMemberSelectorModal(true);
+    setFetchingMemberSelectors(true);
+    try {
+      const data = await teamService.getEOIRestrictions();
+      if (data) {
+        setMemberSelectorCounts({
+          Afghanistan: data.Afghanistan !== null && data.Afghanistan !== undefined ? data.Afghanistan : 0,
+          Ireland: data.Ireland !== null && data.Ireland !== undefined ? data.Ireland : 0,
+          ICC_Full_Member: data.ICC_Full_Member !== null && data.ICC_Full_Member !== undefined ? data.ICC_Full_Member : 0,
+          ICC_Associate_Member: data.ICC_Associate_Member !== null && data.ICC_Associate_Member !== undefined ? data.ICC_Associate_Member : 0,
+          total: data.total !== null && data.total !== undefined ? data.total : 0
+        });
+      } else {
+        setMemberSelectorCounts({
+          Afghanistan: 0,
+          Ireland: 0,
+          ICC_Full_Member: 0,
+          ICC_Associate_Member: 0,
+          total: 0
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch EOI restrictions:", err);
+      showToastNotification("Failed to load EOI restrictions.", "error");
+    } finally {
+      setFetchingMemberSelectors(false);
+    }
+  };
+
+  const calculatedTotal = (memberSelectorCounts.Afghanistan !== '' ? Number(memberSelectorCounts.Afghanistan) || 0 : 0) +
+    (memberSelectorCounts.Ireland !== '' ? Number(memberSelectorCounts.Ireland) || 0 : 0) +
+    (memberSelectorCounts.ICC_Full_Member !== '' ? Number(memberSelectorCounts.ICC_Full_Member) || 0 : 0) +
+    (memberSelectorCounts.ICC_Associate_Member !== '' ? Number(memberSelectorCounts.ICC_Associate_Member) || 0 : 0);
+
+  const handleSaveMemberSelectors = async (e) => {
+    e.preventDefault();
+    setSavingMemberSelectors(true);
+    try {
+      const afg = memberSelectorCounts.Afghanistan !== '' ? Number(memberSelectorCounts.Afghanistan) : 0;
+      const ire = memberSelectorCounts.Ireland !== '' ? Number(memberSelectorCounts.Ireland) : 0;
+      const full = memberSelectorCounts.ICC_Full_Member !== '' ? Number(memberSelectorCounts.ICC_Full_Member) : 0;
+      const assoc = memberSelectorCounts.ICC_Associate_Member !== '' ? Number(memberSelectorCounts.ICC_Associate_Member) : 0;
+      const sumTotal = afg + ire + full + assoc;
+
+      const payload = {
+        Afghanistan: afg,
+        Ireland: ire,
+        ICC_Full_Member: full,
+        ICC_Associate_Member: assoc,
+        total: sumTotal
+      };
+      await teamService.saveEOIRestrictions(payload);
+      showToastNotification("Updated successfully", "success");
+      setShowMemberSelectorModal(false);
+    } catch (err) {
+      console.error("Failed to save EOI restrictions:", err);
+      showToastNotification(err.message || "Failed to update EOI restrictions.", "error");
+    } finally {
+      setSavingMemberSelectors(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* Top Header & Action */}
@@ -141,6 +227,26 @@ const ManageTeamsPage = () => {
         </div>
 
         <div className={styles.headerActions}>
+          <button
+            onClick={handleOpenMemberSelectors}
+            className="btn btn-outline"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              borderColor: '#f306a7',
+              color: '#ffffff',
+              background: 'rgba(243, 6, 167, 0.15)',
+              fontWeight: 700,
+              padding: '0.65rem 1.1rem',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(243, 6, 167, 0.25)',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Sparkles size={18} color="#f306a7" /> Manage Member Selectors
+          </button>
           <button
             onClick={() => navigate('/create-team')}
             className="btn btn-primary"
@@ -364,6 +470,153 @@ const ManageTeamsPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Member Selectors Modal */}
+      {showMemberSelectorModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowMemberSelectorModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: '780px' }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>
+                <Sparkles size={22} color="#f306a7" />
+                Manage Member Selectors
+              </h2>
+              <button onClick={() => setShowMemberSelectorModal(false)} className={styles.closeBtn} type="button">
+                <X size={20} />
+              </button>
+            </div>
+
+            {fetchingMemberSelectors ? (
+              <div className={styles.loadingBox} style={{ border: 'none', background: 'transparent' }}>
+                <div className={styles.spinner} />
+                <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Fetching member selector restrictions...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveMemberSelectors} className={styles.modalForm}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem' }}>
+                  {MEMBER_SELECTOR_CARDS.map((card) => {
+                    const countVal = memberSelectorCounts[card.dbField] ?? 0;
+                    return (
+                      <div
+                        key={card.key}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: `1px solid var(--border-color)`,
+                          borderLeft: `4px solid ${card.accentColor}`,
+                          borderRadius: 'var(--radius-lg)',
+                          padding: '1.25rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.75rem'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <img src={card.logo} alt={card.label} style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
+                          <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>{card.label}</span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                            Restriction Count Limit
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            className={styles.inputField}
+                            style={{
+                              boxSizing: 'border-box',
+                              width: '100%',
+                              padding: '0.6rem 0.85rem',
+                              fontWeight: 700,
+                              fontSize: '1.1rem'
+                            }}
+                            value={countVal}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0);
+                              setMemberSelectorCounts(prev => ({ ...prev, [card.dbField]: val }));
+                            }}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Total Count Card */}
+                <div
+                  style={{
+                    background: 'rgba(243, 6, 167, 0.05)',
+                    border: '1px solid rgba(243, 6, 167, 0.3)',
+                    borderLeft: '4px solid #f306a7',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginTop: '0.5rem'
+                  }}
+                >
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>Total Limit Count</h4>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Overall maximum EOI player limit (Auto-sum of all member categories)</p>
+                  </div>
+                  <div style={{ width: '160px' }}>
+                    <input
+                      type="number"
+                      readOnly
+                      disabled
+                      className={styles.inputField}
+                      style={{
+                        boxSizing: 'border-box',
+                        width: '100%',
+                        padding: '0.6rem 0.85rem',
+                        fontWeight: 800,
+                        fontSize: '1.2rem',
+                        borderColor: 'rgba(243, 6, 167, 0.5)',
+                        color: '#f306a7',
+                        background: 'rgba(243, 6, 167, 0.1)',
+                        cursor: 'not-allowed'
+                      }}
+                      value={calculatedTotal}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className={styles.modalFooter}>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setShowMemberSelectorModal(false)}
+                    disabled={savingMemberSelectors}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ background: 'linear-gradient(135deg, #f306a7 0%, #a855f7 100%)', border: 'none' }}
+                    disabled={savingMemberSelectors}
+                  >
+                    {savingMemberSelectors ? (
+                      <>
+                        <div className="loading-spinner" style={{ width: '18px', height: '18px', borderTopColor: '#fff' }} />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check size={18} />
+                        <span>Save Restrictions</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

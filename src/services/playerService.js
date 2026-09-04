@@ -361,5 +361,68 @@ export const playerService = {
 
   clearCache: () => {
     CACHED_DATA = {};
+  },
+
+  sendMailForInvalidPassport: async ({ firstname, refno, email }) => {
+    
+     const payload = {
+          Checkout: 'SendMailforinvalidpassport',
+          FirstName: "", MiddleName: "", Surname: "", Mobile: "",
+          DOB: "", Email: "", State: "", TrialCity: "", TrialZone: "",
+          PlayingRoles: "", BattingHandedness: "", PreferredBowlingStyle: "",
+          PreferredBattingOrders: "",  firstname: firstname , refno: refno , email: email
+        };
+
+    try {
+      const response = await fetch('https://auqvn8x7x4.execute-api.ap-south-1.amazonaws.com/ECLPlayerRegistration/player/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json();
+      let parsedData = json;
+      if (json.body && typeof json.body === 'string') {
+        parsedData = JSON.parse(json.body);
+      }
+      return parsedData;
+    } catch (err) {
+      console.error('Failed to send mail for invalid passport:', err);
+      throw err;
+    }
+  },
+
+  sendMailToUploadPassport: async ({ firstname, refno, email }) => {
+
+
+     const payload = {
+          Checkout: 'SendMailtouploadpassport',
+          FirstName: "", MiddleName: "", Surname: "", Mobile: "",
+          DOB: "", Email: "", State: "", TrialCity: "", TrialZone: "",
+          PlayingRoles: "", BattingHandedness: "", PreferredBowlingStyle: "",
+          PreferredBattingOrders: "",  firstname: firstname , refno: refno , email: email
+        };
+
+    try {
+      const response = await fetch('https://auqvn8x7x4.execute-api.ap-south-1.amazonaws.com/ECLPlayerRegistration/player/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json();
+      let parsedData = json;
+      if (json.body && typeof json.body === 'string') {
+        parsedData = JSON.parse(json.body);
+      }
+      return parsedData;
+    } catch (err) {
+      console.error('Failed to send mail to upload passport:', err);
+      throw err;
+    }
   }
 };

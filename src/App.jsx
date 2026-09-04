@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/Login';
 import Layout from './components/layout/Layout';
@@ -13,9 +13,8 @@ import ILTDashboardPage from './pages/ILTDashboard';
 import CreateTeamPage from './pages/CreateTeam';
 import ManageTeamsPage from './pages/ManageTeams';
 import EOITeamDashboardPage from './pages/EOITeamDashboard';
-
-// Placeholder Pages
-const ReportsPage = () => <div className="card" style={{ padding: '3rem', textAlign: 'center' }}><h1>Reports</h1><p>Reports and Analytics module is coming soon.</p></div>;
+import MailManagerPage from './pages/MailManager';
+import { MailProvider } from './context/MailContext';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -27,9 +26,21 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const Dashboard = ({ viewType }) => {
+  const { user, league, loginData } = useAuth();
+  const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalState, setModalState] = useState({ type: null, data: null });
+
+  const isAgent99 = (league?.id === 'ILT' || loginData?.league === 'ILT') && Number(loginData?.agentId) === 99;
+
+  React.useEffect(() => {
+    if (isAgent99) {
+      navigate('/ilt-dashboard', { replace: true });
+    } else if (user?.isTeam) {
+      navigate('/eoi-team-dashboard', { replace: true });
+    }
+  }, [isAgent99, user, navigate]);
 
   const openImageModal = (url, title) => setModalState({ type: 'image', data: { url, title } });
   const openDetailModal = (player) => setModalState({ type: 'details', data: player });
@@ -45,6 +56,14 @@ const Dashboard = ({ viewType }) => {
       });
     }
   }, [viewType]);
+
+  if (isAgent99 || user?.isTeam) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -62,19 +81,21 @@ const Dashboard = ({ viewType }) => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<ProtectedRoute><Dashboard viewType="table" /></ProtectedRoute>} />
-      <Route path="/ilt-dashboard" element={<ProtectedRoute><ILTDashboardPage /></ProtectedRoute>} />
-      <Route path="/create-team" element={<ProtectedRoute><CreateTeamPage /></ProtectedRoute>} />
-      <Route path="/manage-teams" element={<ProtectedRoute><ManageTeamsPage /></ProtectedRoute>} />
-      <Route path="/eoi-team-dashboard" element={<ProtectedRoute><EOITeamDashboardPage /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-      <Route path="/register" element={<ProtectedRoute><PlayerRegistrationPage /></ProtectedRoute>} />
-      <Route path="/excel-upload" element={<ProtectedRoute><ExcelUploadPage /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+    <MailProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<ProtectedRoute><Dashboard viewType="table" /></ProtectedRoute>} />
+        <Route path="/ilt-dashboard" element={<ProtectedRoute><ILTDashboardPage /></ProtectedRoute>} />
+        <Route path="/create-team" element={<ProtectedRoute><CreateTeamPage /></ProtectedRoute>} />
+        <Route path="/manage-teams" element={<ProtectedRoute><ManageTeamsPage /></ProtectedRoute>} />
+        <Route path="/eoi-team-dashboard" element={<ProtectedRoute><EOITeamDashboardPage /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><MailManagerPage /></ProtectedRoute>} />
+        <Route path="/register" element={<ProtectedRoute><PlayerRegistrationPage /></ProtectedRoute>} />
+        <Route path="/excel-upload" element={<ProtectedRoute><ExcelUploadPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </MailProvider>
   );
 }
 

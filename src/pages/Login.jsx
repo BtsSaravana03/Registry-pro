@@ -37,8 +37,21 @@ const LoginPage = () => {
   const [resetError, setResetError] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
 
-  const { login, loginTeamSession } = useAuth();
+  const { user, league, loginData, login, loginTeamSession } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      const isAgent99ILT = (league?.id === 'ILT' || loginData?.league === 'ILT') && Number(loginData?.agentId) === 99;
+      if (isAgent99ILT) {
+        navigate('/ilt-dashboard', { replace: true });
+      } else if (user.isTeam) {
+        navigate('/eoi-team-dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, league, loginData, navigate]);
 
   useEffect(() => {
     const sessionMsg = localStorage.getItem('player_registry_session_msg');

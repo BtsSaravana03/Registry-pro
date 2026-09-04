@@ -10,7 +10,8 @@ import {
   FileSpreadsheet,
   LayoutDashboard,
   ShieldPlus,
-  Users
+  Users,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
@@ -27,7 +28,7 @@ const Sidebar = ({ isCollapsed, onItemClick }) => {
       { path: '/manage-teams', label: 'Manage Teams', icon: <Users size={20} /> }
     ] : []),
     { path: '/', label: isAgent99 ? 'EOI Registry' : 'Players', icon: <Table size={20} /> },
-    { path: '/reports', label: 'Reports', icon: <FileText size={20} /> },
+    { path: '/reports', label: 'Mail Manager', icon: <Mail size={20} /> },
     ...(loginData?.agentId !== 100 ? [
       { path: '/register', label: 'Register a Player', icon: <UserPlus size={20} /> },
       { path: '/excel-upload', label: 'Excel Upload', icon: <FileSpreadsheet size={20} /> }

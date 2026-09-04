@@ -43,7 +43,7 @@ const Navbar = ({ onLogout, theme, onThemeToggle, onMobileMenuToggle }) => {
       <div className={styles.centerSection}>
         {(league?.id === 'ILT' && !isAgent99 && !user?.isTeam) && [
           { path: '/', label: 'Players', icon: <Table size={18} /> },
-          { path: '/reports', label: 'Reports', icon: <FileText size={18} /> },
+          { path: '/reports', label: 'Manage Mails', icon: <FileText size={18} /> },
           ...(loginData?.agentId !== 100 ? [
             { path: '/register', label: 'Register a Player', icon: <UserPlus size={18} /> },
             { path: '/excel-upload', label: 'Excel Upload', icon: <FileSpreadsheet size={18} /> }
